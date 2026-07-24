@@ -1,20 +1,57 @@
-<!DOCTYPE html><html><head><title>RAPVERSE V10</title>
+<!DOCTYPE html><html><head><title>RAPVERSE V11</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<style>body{background:#000;color:#fff;font-family:Arial;padding:20px;text-align:center} .card{background:#111;padding:20px;border-radius:15px;margin:10px auto;max-width:500px} .btn{background:#FFD700;color:#000;border:0;padding:15px;width:100%;border-radius:10px;font-weight:bold;margin:5px 0;cursor:pointer} input,textarea{width:90%;padding:12px;background:#222;color:#fff;border:1px solid #333;border-radius:8px;margin:8px 0} h1{color:#FFD700} .hidden{display:none}</style>
+<style>
+body{background:#000;color:#fff;font-family:Arial;padding:20px;text-align:center} 
+.card{background:#111;padding:20px;border-radius:15px;margin:10px auto;max-width:500px} 
+.btn{background:#FFD700;color:#000;border:0;padding:15px;width:100%;border-radius:10px;font-weight:bold;margin:5px 0;cursor:pointer;font-size:16px} 
+input,textarea{width:90%;padding:12px;background:#222;color:#fff;border:1px solid #333;border-radius:8px;margin:8px 0} 
+h1{color:#FFD700;font-size:28px} 
+#loader{display:none} .spinner{border:4px solid #333;border-top:4px solid #FFD700;border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;margin:10px auto}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+audio{width:100%;margin-top:15px}
+</style>
 </head><body>
 <h1>RAPVERSE STUDIO</h1>
-<div id="login" class="card"><h3>🎛️ ACCÈS STUDIO</h3><input id="email" placeholder="Email"><input id="pass" type="password" placeholder="Mot de passe"><button class="btn" onclick="signup()">S'INSCRIRE +5 CRÉDITS</button><button class="btn" onclick="login()">SE CONNECTER</button><p id="err" style="color:red"></p></div>
-<div id="app" class="card hidden"><p>💎 Crédits: <b id="cred">5</b></p><input id="title" placeholder="Titre du son"><textarea id="lyrics" placeholder="Écris tes paroles ici..." style="height:120px"></textarea><button class="btn" onclick="gen()">🔴 GÉNÉRER</button><h3>📀 MES SONS</h3><div id="songs">Chargement...</div><button class="btn" style="background:#FF4444" onclick="logout()">DÉCONNEXION</button></div>
-<script type="module">
-import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js'
-const supabase = createClient('https://ffyobetyrxcnqalbiqkj.supabase.co','sb_publishable_qe9TxtIJokW0H7GmzsKTEw__hm0Xp34')
-let user=null;
-async function check(){const {data:{session}}=await supabase.auth.getSession();if(session){user=session.user;showApp()}}check();
-async function signup(){const {error}=await supabase.auth.signUp({email:email.value,password:pass.value});err.innerText=error?error.message:'✅ Compte créé ! Connecte-toi';}
-async function login(){const {data,error}=await supabase.auth.signInWithPassword({email:email.value,password:pass.value});if(error)err.innerText=error.message;else{user=data.user;showApp()}}
-async function logout(){await supabase.auth.signOut();location.reload()}
-async function showApp(){login.classList.add('hidden');app.classList.remove('hidden');const {data}=await supabase.from('profiles').select('credits').eq('id',user.id).single();cred.innerText=data?.credits||5;load()}
-async function gen(){const {data}=await supabase.from('profiles').select('credits').eq('id',user.id).single();if(data.credits<=0)return alert('Plus de crédits');await supabase.from('profiles').update({credits:data.credits-1}).eq('id',user.id);cred.innerText=data.credits-1;await supabase.from('songs').insert({user_id:user.id,title:title.value,url:'https://test.com/son.mp3',style:'rap'});alert('Son sauvegardé !');load()}
-async function load(){const {data}=await supabase.from('songs').select('*').eq('user_id',user.id).order('created_at',{ascending:false});songs.innerHTML=data.map(s=>`<p>🎵 ${s.title}</p>`).join('')||'<p>Aucun son</p>'}
-window.signup=signup;window.login=login;window.logout=logout;window.gen=gen;
+<div class="card">
+  <h3>🎛️ GÉNÉRATEUR IA</h3>
+  <input id="style" placeholder="Style: Drill, Afro, Trap..." value="Drill Francais">
+  <textarea id="lyrics" placeholder="Écris tes paroles ici..." style="height:150px"></textarea>
+  <button class="btn" onclick="generate()">🔴 GÉNÉRER MON SON</button>
+  
+  <div id="loader"><div class="spinner"></div><p>Génération en cours... 30s</p></div>
+  <div id="result"></div>
+</div>
+
+<script>
+async function generate(){
+  const btn = document.querySelector('.btn');
+  const lyrics = document.getElementById('lyrics').value;
+  const style = document.getElementById('style').value;
+  if(!lyrics) return alert('Écris des paroles d\'abord');
+  
+  loader.style.display='block';
+  result.innerHTML='';
+  btn.disabled=true;
+  btn.innerText='GÉNÉRATION...';
+
+  try{
+    // Pour l'instant on simule. Après on branche Replicate
+    await new Promise(r=>setTimeout(r,3000)); 
+    
+    result.innerHTML = `
+      <h3>✅ Ton son est prêt !</h3>
+      <audio controls src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+      <button class="btn" onclick="download()">⬇️ TÉLÉCHARGER</button>
+    `;
+  }catch(e){
+    alert('Erreur: '+e.message)
+  }
+  loader.style.display='none';
+  btn.disabled=false;
+  btn.innerText='🔴 GÉNÉRER MON SON';
+}
+
+function download(){
+  window.open('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3')
+}
 </script></body></html>
