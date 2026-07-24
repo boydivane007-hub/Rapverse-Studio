@@ -1,24 +1,29 @@
 export default async function handler(req, res) {
-  if(req.method !== 'POST') return res.status(405).end();
-  
-  const { prompt } = req.body;
-  const REPLICATE_API_KEY = process.env.REPLICATE_API_KEY;
+  try {
+    const { lyrics } = req.body;
+    
+    const start = await fetch("https://api.replicate.com/v1/predictions", {
+      method: "POST",
+      headers: { 
+        "Authorization": `Token ${process.env.REPLICATE_API_KEY}`, 
+        "Content-Type": "application/json" 
+      },
+      body: JSON.stringify({ 
+        version: "b05b1dff1d8c6dc63e5db4a1eec7b79dfd6c60d8a4a6aafdd8b7d2a8a8c0b0c0",
+        input: { prompt: lyrics } 
+      })
+    });
+    const prediction = await start.json();
+    if(prediction.error) throw new Error(prediction.error);
 
-  const response = await fetch("https://api.replicate.com/v1/predictions", {
-    method: "POST",
-    headers: { 
-      "Authorization": `Token ${REPLICATE_API_KEY}`, 
-      "Content-Type": "application/json" 
-    },
-    body: JSON.stringify({ 
-      version: "6a8a2e2b5e8b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d", // Suno v3.5
-      input: { 
-        prompt: prompt,
-        model_version: "v3_5",
-        instrumental: false
-      } 
-    })
-  });
-  const data = await response.json();
-  res.status(200).json(data);
-}
+    await new Promise(r=>setTimeout(r,45000));
+    
+    const result = await fetch(`https://api.replicate.com/v1/predictions/${prediction.id}`, {
+      headers: {"Authorization": `Token ${process.env.REPLICATE_API_KEY}`}
+    }).then(r=>r.json());
+    
+    res.json({url: result.output?.audio || result.output?.[0]});
+  } catch(e) {
+    res.status(500).json({error: e.message});
+  }
+      }
