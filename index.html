@@ -1,28 +1,64 @@
-<!DOCTYPE html><html><head><title>RAPVERSE</title>
+<!DOCTYPE html><html><head><title>RAPVERSE STUDIO</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<style>body{background:#000;color:#fff;font-family:Arial;text-align:center;padding:20px} 
-.card{background:#111;padding:20px;border-radius:15px;max-width:500px;margin:auto;border:1px solid #FFD700} 
+<style>
+body{background:#000;color:#fff;font-family:Arial;text-align:center;padding:15px} 
+.card{background:#111;padding:20px;border-radius:15px;max-width:600px;margin:auto;border:2px solid #FFD700} 
 .btn{background:#FFD700;color:#000;padding:15px;width:100%;border:0;border-radius:10px;font-weight:bold;font-size:16px;cursor:pointer;margin-top:10px}
-textarea{width:90%;height:150px;background:#222;color:#fff;border:1px solid #333;border-radius:8px;padding:10px;font-size:14px}</style>
-</head><body>
-<h1>🔥 RAPVERSE STUDIO 🔥</h1>
+select,textarea{width:95%;background:#222;color:#fff;border:1px solid #444;border-radius:8px;padding:12px;font-size:14px;margin-top:8px}
+label{font-weight:bold;color:#FFD700;text-align:left;display:block;margin-top:15px}
+.progress{width:100%;background:#333;border-radius:10px;margin-top:10px;height:20px;overflow:hidden}
+.bar{width:0%;height:100%;background:#FFD700;transition:width 0.5s}
+</style></head><body>
+<h1>🔥 RAPVERSE STUDIO PRO 🔥</h1>
 <div class="card">
-<textarea id="lyrics" placeholder="Ex: Afro drill, voix grave, prod sombre, parle de Yaoundé la nuit..."></textarea>
+  
+<label>1. CHOISIS LE STYLE +50</label>
+<select id="style">
+<option>Afrobeat Camerounais</option><option>Drill Yaoundé</option><option>Rap US Trap</option>
+<option>Bikutsi Moderne</option><option>Ambiance Makossa</option><option>Afro Drill</option>
+<option>Boom Bap 90s</option><option>Melodic Rap</option><option>Reggae Dancehall</option>
+<option>Zouk Love</option><option>...50 autres styles dispo</option>
+</select>
+
+<label>2. ÉCRIS TES PAROLES</label>
+<textarea id="lyrics" placeholder="[INTRO] Han...&#10;[COUPLET 1] Mission avant émotions..."></textarea>
+
+<label>3. TYPE DE VOIX</label>
+<select id="voice">
+<option>Voix Grave Masculine</option><option>Voix Aiguë Masculine</option>
+<option>Voix Féminine Douce</option><option>Voix Féminine Puissante</option>
+<option>Voix Robotique</option><option>Voix Enfant</option>
+</select>
+
 <button class="btn" onclick="generate()">🎵 GÉNÉRER MON SON</button>
+
+<div class="progress"><div class="bar" id="progressBar"></div></div>
 <div id="result"></div>
 </div>
 <script>
+let interval;
 async function generate(){
   const btn = document.querySelector('.btn');
+  const style = document.getElementById('style').value;
   const lyrics = document.getElementById('lyrics').value;
+  const voice = document.getElementById('voice').value;
   if(!lyrics){alert('Écris des paroles d\'abord'); return;}
   
-  btn.innerText="GÉNÉRATION... 45s";
+  btn.innerText="GÉNÉRATION EN COURS...";
   btn.disabled=true;
-  result.innerHTML="<p>Replicate travaille sur ton son...</p>";
+  result.innerHTML="";
+  let progress=0;
+  interval=setInterval(()=>{
+    progress+=2; if(progress>100)progress=100;
+    document.getElementById('progressBar').style.width=progress+'%';
+  },900);
   
-  const res = await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lyrics})});
+  const prompt = `Style: ${style}. Voice: ${voice}. Lyrics: ${lyrics}`;
+  const res = await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
   const data = await res.json();
+  
+  clearInterval(interval);
+  document.getElementById('progressBar').style.width='100%';
   
   if(data.url) result.innerHTML=`<h3>✅ TON SON EST PRÊT!</h3><audio controls src="${data.url}" style="width:100%"></audio>`;
   else result.innerHTML=`<p style="color:red">Erreur: ${data.error}</p>`;
