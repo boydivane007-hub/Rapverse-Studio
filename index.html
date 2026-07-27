@@ -42,7 +42,7 @@ async function generate(){
   const style = document.getElementById('style').value;
   const lyrics = document.getElementById('lyrics').value;
   const voice = document.getElementById('voice').value;
-  if(!lyrics){alert('Écris des paroles d\'abord'); return;}
+      if(!lyrics.trim()){alert('Écris des paroles d\'abord'); return;}
   
   btn.innerText="GÉNÉRATION EN COURS...";
   btn.disabled=true;
